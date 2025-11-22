@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import { getCollection, ensureDatabase } from '@/lib/db';
 
 export async function GET(request, { params }) {
-  await ensureDatabase();
-  const collection = await getCollection();
-  const { code } = params;
-
   try {
+    await ensureDatabase();
+    const collection = await getCollection();
+    const { code } = await params;
+
     const link = await collection.findOne({ code });
     
     if (!link) {
@@ -18,13 +18,19 @@ export async function GET(request, { params }) {
 
     // Update click count and last clicked time
     const now = new Date();
-    await collection.updateOne(
+    const updateResult = await collection.updateOne(
       { code },
       {
         $inc: { click_count: 1 },
         $set: { last_clicked_at: now }
       }
     );
+
+    // Verify update was successful
+    if (updateResult.matchedCount === 0) {
+      console.error('Failed to update click count for code:', code);
+      // Still redirect even if update fails
+    }
 
     // Perform 302 redirect
     return NextResponse.redirect(link.target_url, { status: 302 });

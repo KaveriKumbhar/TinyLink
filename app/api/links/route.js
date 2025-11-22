@@ -3,10 +3,10 @@ import { getCollection, ensureDatabase } from '@/lib/db';
 import { generateShortCode, isValidUrl, isValidCode } from '@/lib/utils';
 
 export async function POST(request) {
-  await ensureDatabase();
-  const collection = await getCollection();
-
   try {
+    await ensureDatabase();
+    const collection = await getCollection();
+
     const body = await request.json();
     const { url, code: customCode } = body;
 
@@ -62,7 +62,16 @@ export async function POST(request) {
     };
 
     const result = await collection.insertOne(link);
+    
+    if (!result.insertedId) {
+      throw new Error('Failed to insert link');
+    }
+    
     const insertedLink = await collection.findOne({ _id: result.insertedId });
+    
+    if (!insertedLink) {
+      throw new Error('Failed to retrieve inserted link');
+    }
 
     // Convert MongoDB _id to id for consistency
     const response = {
@@ -94,10 +103,9 @@ export async function POST(request) {
 }
 
 export async function GET() {
-  await ensureDatabase();
-  const collection = await getCollection();
-
   try {
+    await ensureDatabase();
+    const collection = await getCollection();
     const links = await collection
       .find({})
       .sort({ created_at: -1 })

@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server';
 import { getCollection, ensureDatabase } from '@/lib/db';
 
 export async function GET(request, { params }) {
-  await ensureDatabase();
-  const collection = await getCollection();
-  const { code } = params;
-
   try {
+    await ensureDatabase();
+    const collection = await getCollection();
+    const { code } = await params;
     const link = await collection.findOne({ code });
     
     if (!link) {
@@ -37,11 +36,10 @@ export async function GET(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  await ensureDatabase();
-  const collection = await getCollection();
-  const { code } = params;
-
   try {
+    await ensureDatabase();
+    const collection = await getCollection();
+    const { code } = await params;
     const result = await collection.deleteOne({ code });
     
     if (result.deletedCount === 0) {
@@ -62,11 +60,10 @@ export async function DELETE(request, { params }) {
 }
 
 export async function PUT(request, { params }) {
-  await ensureDatabase();
-  const collection = await getCollection();
-  const { code } = params;
-
   try {
+    await ensureDatabase();
+    const collection = await getCollection();
+    const { code } = await params;
     // Update click count and last clicked time
     const now = new Date();
     const result = await collection.findOneAndUpdate(
