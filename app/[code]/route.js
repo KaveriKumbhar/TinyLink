@@ -17,19 +17,28 @@ export async function GET(request, { params }) {
     }
 
     // Update click count and last clicked time
+    // Use findOneAndUpdate to ensure atomic operation and wait for write acknowledgment
     const now = new Date();
-    const updateResult = await collection.updateOne(
+    const updateResult = await collection.findOneAndUpdate(
       { code },
       {
         $inc: { click_count: 1 },
         $set: { last_clicked_at: now }
+      },
+      {
+        returnDocument: 'after',
+        // Ensure write is acknowledged before continuing
+        writeConcern: { w: 'majority', wtimeout: 5000 }
       }
     );
 
     // Verify update was successful
-    if (updateResult.matchedCount === 0) {
+    if (!updateResult || !updateResult.value) {
       console.error('Failed to update click count for code:', code);
       // Still redirect even if update fails
+    } else {
+      // Log successful update for debugging
+      console.log('Click count updated for code:', code, 'New count:', updateResult.value.click_count);
     }
 
     // Perform 302 redirect

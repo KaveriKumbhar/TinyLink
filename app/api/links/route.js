@@ -61,7 +61,10 @@ export async function POST(request) {
       created_at: now,
     };
 
-    const result = await collection.insertOne(link);
+    // Insert with write concern to ensure write is acknowledged
+    const result = await collection.insertOne(link, {
+      writeConcern: { w: 'majority', wtimeout: 5000 }
+    });
     
     if (!result.insertedId) {
       throw new Error('Failed to insert link');

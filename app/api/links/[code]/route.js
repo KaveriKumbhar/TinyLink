@@ -72,7 +72,11 @@ export async function PUT(request, { params }) {
         $inc: { click_count: 1 },
         $set: { last_clicked_at: now }
       },
-      { returnDocument: 'after' }
+      {
+        returnDocument: 'after',
+        // Ensure write is acknowledged
+        writeConcern: { w: 'majority', wtimeout: 5000 }
+      }
     );
 
     if (!result.value) {
